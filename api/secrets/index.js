@@ -4,8 +4,8 @@
   where the process.env does not have JWT_SECRET.
 
   If no fallback is provided, TESTS WON'T WORK and other
-  developers cloning this repo won't be able to run the project as is.
- */
-module.exports = {
+  developers cloning this repo won't be able to run the project as is. */
 
-}
+module.exports = {
+	jwtSecret: process.env.JWT_SECRET || 'shh'
+};
