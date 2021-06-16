@@ -9,7 +9,7 @@ const restricted = (req, res, next) => {
 			if (err) {
 				next({ status: 401, message: 'Token invalid' });
 			} else {
-				console.log('decoded token: ', decoded);
+				// console.log('decoded token: ', decoded);
 				req.decodedJwt = decoded;
 				next();
 			}
@@ -19,9 +19,7 @@ const restricted = (req, res, next) => {
 	}
 	/* If the user does not provide a token in the Authorization header:
   status 401 { "message": "Token required" }
-  
   If the provided token does not verify: status 401 { "message": "Token invalid" }
-  
   Put the decoded token in the req object, to make life easier for middlewares downstream! */
 };
 
@@ -31,8 +29,8 @@ const only = role_name => (req, res, next) => {
     status 403 { "message": "This is not for you" }
 
     Pull the decoded token from the req object, to avoid verifying it again! */
-	console.log(`desired role_name: ${role_name}`);
-	console.log(`actual role_name: ${req.decodedJwt.role}`);
+	// console.log(`desired role_name: ${role_name}`);
+	// console.log(`actual role_name: ${req.decodedJwt.role}`);
 
 	if (role_name === req.decodedJwt.role) {
 		next();
@@ -58,22 +56,40 @@ const checkUsernameExists = async (req, res, next) => {
 };
 
 const validateRoleName = async (req, res, next) => {
-	const { role_name } = req.body;
+	let { role_name } = req.body;
 	// const [role] = await Users.findBy({ role_name });
-	if (role_name.trim().length > 32) {
-		next({
-			status: 422,
-			message: 'Role name can not be longer than 32 chars'
-		});
-	} else if (role_name === 'admin') {
-		next({ status: 422, message: 'Role name can not be admin' });
-	} else if (!role_name || role_name.trim() === '') {
+	if (!role_name || role_name.trim() === '') {
 		req.role_name = 'student';
 		next();
+	} else if (role_name.trim() === 'admin') {
+		next({ status: 422, message: 'Role name can not be admin' });
 	} else {
-		req.role_name = role_name.trim();
-		next();
+		role_name = role_name.trim();
+		if (role_name.length > 32) {
+			next({
+				status: 422,
+				message: 'Role name can not be longer than 32 chars'
+			});
+		} else {
+			req.role_name = role_name;
+			next();
+		}
 	}
+
+	// if (role_name.length > 32) {
+	// 	next({
+	// 		status: 422,
+	// 		message: 'Role name can not be longer than 32 chars'
+	// 	});
+	// } else if (role_name === 'admin') {
+	// 	next({ status: 422, message: 'Role name can not be admin' });
+	// } else if (!role_name || role_name === '') {
+	// 	req.role_name = 'student';
+	// 	next();
+	// } else {
+	// 	req.role_name = role_name;
+	// 	next();
+	// }
 
 	/* If the role_name in the body is valid, set req.role_name to be the trimmed string and proceed.
 

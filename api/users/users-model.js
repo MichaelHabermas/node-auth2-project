@@ -1,6 +1,3 @@
-const {
-	dangerouslyDisableDefaultSrc
-} = require('helmet/dist/middlewares/content-security-policy');
 const db = require('../../data/db-config.js');
 
 function find() {

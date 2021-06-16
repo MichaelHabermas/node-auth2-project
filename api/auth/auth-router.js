@@ -1,9 +1,7 @@
 const bcrypt = require('bcryptjs');
-
 const router = require('express').Router();
 const { checkUsernameExists, validateRoleName } = require('./auth-middleware');
 const { JWT_SECRET } = require('../secrets'); // use this secret!
-
 const tokenBuilder = require('./token-builder');
 const Users = require('../users/users-model.js');
 
@@ -13,7 +11,8 @@ router.post('/register', validateRoleName, (req, res, next) => {
     response: status 201 { "user"_id: 3,
       "username": "anna",
       "role_name": "angel" } */
-	let user = req.body;
+	const { username, password } = req.body;
+	let user = { username, password, role_name: req.role_name };
 
 	// bcrypting the password before saving
 	const rounds = process.env.BCRYPT_ROUNDS || 8; // 2 ^ 8
@@ -23,12 +22,10 @@ router.post('/register', validateRoleName, (req, res, next) => {
 	user.password = hash;
 
 	Users.add(user)
-		.then(saved => {
-			res.status(201).json({
-				message: `Great to have you, ${saved.username}`
-			});
+		.then(newUser => {
+			res.status(201).json(newUser[0]);
 		})
-		.catch(next); // our custom err handling middleware in server.js will trap this
+		.catch(next);
 });
 
 router.post('/login', checkUsernameExists, (req, res, next) => {
@@ -47,17 +44,23 @@ router.post('/login', checkUsernameExists, (req, res, next) => {
       "role_name": "admin" // the role of the authenticated user
     } */
 	// let { username, password } = req.body;
-	let { password } = req.body;
+	const { username, role_name, user_id } = req.user;
 
-	if (bcrypt.compareSync(password, req.user.password)) {
-		const token = tokenBuilder(req.user);
-		console.log(token);
+	if (bcrypt.compareSync(req.body.password, req.user.password)) {
+		const token = tokenBuilder({
+			user_id,
+			username,
+			role_name
+		});
 		res.status(200).json({
-			message: `Welcome back ${req.user.username}, here is token!`,
+			message: `${username} is back!`,
 			token
 		});
 	} else {
-		res.status(401).json({ message: 'Invalid Credentials' });
+		next({
+			status: 401,
+			message: 'Invalid Credentials'
+		});
 	}
 });
 
