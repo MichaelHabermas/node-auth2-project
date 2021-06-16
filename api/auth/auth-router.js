@@ -59,7 +59,7 @@ router.post('/login', checkUsernameExists, (req, res, next) => {
 	} else {
 		next({
 			status: 401,
-			message: 'Invalid Credentials'
+			message: 'Invalid credentials'
 		});
 	}
 });

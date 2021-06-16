@@ -32,7 +32,7 @@ const only = role_name => (req, res, next) => {
 	// console.log(`desired role_name: ${role_name}`);
 	// console.log(`actual role_name: ${req.decodedJwt.role}`);
 
-	if (role_name === req.decodedJwt.role) {
+	if (role_name === req.decodedJwt.role_name) {
 		next();
 	} else {
 		next({
